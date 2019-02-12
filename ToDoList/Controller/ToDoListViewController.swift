@@ -11,74 +11,19 @@ import UIKit
 class ToDoListViewController: UITableViewController {
     
     var itemsArr = [item]()
-    
-    
-    let defaults = UserDefaults.standard
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("item.plist")
+
 
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
-        let newItem1 = item()
-        newItem1.itemName = "Vikram"
-        newItem1.done = true
-        itemsArr.append(newItem1)
         
-        let newItem2 = item()
-        newItem2.itemName = "Sai"
-        itemsArr.append(newItem2)
+        print(dataFilePath!)
         
-        let newItem3 = item()
-        newItem3.itemName = "Subhash"
-        itemsArr.append(newItem3)
-        
-        let newItem5 = item()
-        newItem5.itemName = "Manju"
-        itemsArr.append(newItem5)
-        
-        let newItem6 = item()
-        newItem6.itemName = "Sai"
-        itemsArr.append(newItem6)
-        
-        let newItem7 = item()
-        newItem7.itemName = "Subhash"
-        itemsArr.append(newItem7)
-        
-        let newItem8 = item()
-        newItem8.itemName = "Manju"
-        itemsArr.append(newItem8)
-        
-        let newItem9 = item()
-        newItem9.itemName = "Sai"
-        itemsArr.append(newItem9)
-        
-        let newItem10 = item()
-        newItem10.itemName = "Subhash"
-        itemsArr.append(newItem10)
-        
-        let newItem11 = item()
-        newItem11.itemName = "Manju"
-        itemsArr.append(newItem11)
-        
-        let newItem12 = item()
-        newItem12.itemName = "Sai"
-        itemsArr.append(newItem12)
-        
-        let newItem13 = item()
-        newItem13.itemName = "Subhash"
-        itemsArr.append(newItem13)
-        
-        let newItem14 = item()
-        newItem14.itemName = "Manju"
-        itemsArr.append(newItem14)
-
+        loadItems()
 
         
-        
-        
-        if let items = defaults.array(forKey: "TodoListArray") as? [item] {
-            itemsArr = items
-        }
     }
     
     // Mark :- Tableview DataSource Methods
@@ -105,7 +50,7 @@ class ToDoListViewController: UITableViewController {
         print(itemsArr[indexPath.row])
         
         itemsArr[indexPath.row].done = !itemsArr[indexPath.row].done
-        tableView.reloadData()
+        saveData()
         tableView.deselectRow(at: indexPath, animated: true)
     }
     
@@ -122,9 +67,8 @@ class ToDoListViewController: UITableViewController {
             let newItem = item()
             newItem.itemName = textField.text!
             self.itemsArr.append(newItem)
+            self.saveData()
             
-            self.defaults.setValue(self.itemsArr, forKey: "TodoListArray")
-            self.tableView.reloadData()
         }
         
         alert.addTextField { (alertTextField) in
@@ -135,6 +79,37 @@ class ToDoListViewController: UITableViewController {
         alert.addAction(action)
         
         self.present(alert, animated: true, completion: nil)
+        
+        
+    }
+    
+    // Mark : Data Manipulation Methods
+    
+    func saveData() {
+        
+        let encoder = PropertyListEncoder()
+        
+        do {
+            let data = try encoder.encode(self.itemsArr)
+           try data.write(to: dataFilePath!)
+        } catch {
+            print("error encoding,\(error)")
+        }
+        
+        self.tableView.reloadData()
+        
+    }
+    
+    func loadItems() {
+        
+        if let data = try? Data(contentsOf: dataFilePath!) {
+            let decoder = PropertyListDecoder()
+            do {
+                itemsArr = try decoder.decode([item].self, from: data)
+            } catch {
+                print("decoder error,\(error)")
+            }
+        }
         
         
     }
